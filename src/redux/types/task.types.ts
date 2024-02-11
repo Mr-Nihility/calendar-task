@@ -1,9 +1,9 @@
-import moment from "moment";
 
 
 export interface TaskState {
     tasks: Task[],
-    currentDate: string
+    currentDate: string,
+    countryCode: Country["countryCode"]
 }
 
 export enum LabelTypes {
@@ -29,11 +29,24 @@ export type TaskPayload = {
     order?: number
 }
 export type Holyday = {
-    date: string
+    date: string,
+    localName: string,
+    name: string,
+    countryCode: string,
+    fixed: boolean,
+    global: boolean,
+    counties: string[],
+    launchYear: 0,
+    types: string[]
 }
 
 export type CalendarCellData = {
     date: string,
     taskList: Task[],
-    holidays: Holyday[]
+    holydayList: Holyday[]
+}
+
+export type Country = {
+    countryCode: string,
+    name: string
 }

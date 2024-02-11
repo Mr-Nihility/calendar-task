@@ -10,16 +10,21 @@
 import moment from "moment";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllTask, getCurrentDate } from "../../redux/task/task-selectors.ts";
+import { getCurrentDate } from "../../redux/task/task-selectors.ts";
 import { addTask, updateTask } from "../../redux/task/task-slice.ts";
-import { CalendarCellData, Task } from "../../redux/types/task.types.ts";
-import { getCalendarCellsByDate } from "../../tools/calendar-tool.ts";
+import { CalendarCellData, Holyday, Task } from "../../redux/types/task.types.ts";
+import { buildWeekGrid, getCalendarCellsByDate } from "../../tools/calendar-tool.ts";
 import CalendarCell from "../CalendarCell/CalendarCell.tsx";
 import { CalendarBox } from "./styled/CalendarBox";
+import { CalendarHeader } from "./styled/CalendarHeader.ts";
 
-export default function Calendar() {
+type CalendarProps = {
+    tasks: Task[],
+    holydays: Holyday[]
+}
+export default function Calendar({ tasks, holydays }: CalendarProps) {
+
     const dispatch = useDispatch();
-    const tasks = useSelector(getAllTask);
     const selectedDate = useSelector(getCurrentDate);
     const [currentCellDate, setCurrentCellDate] = useState<null | Task["date"]>(null);
     const [draggingTask, setDraggingTask] = useState<null | Task>(null);
@@ -29,19 +34,20 @@ export default function Calendar() {
 
     useEffect(() => {
         const grid: CalendarCellData[] = getCalendarCellsByDate(moment(selectedDate, "DD-MM-YYYY")).map(cell => {
-            cell.taskList = tasks.filter(task => task.date === cell.date)
+            cell.taskList = tasks.filter(task => task.date === cell.date);
+            cell.holydayList = holydays.filter(holyday => holyday.date === cell.date);
+            console.log(holydays);
             return cell;
         })
 
         setCalendarCells(grid)
-    }, [tasks, selectedDate])
+    }, [tasks, selectedDate, holydays])
 
     const onDragStartHandler = (task: Task) => {
-        console.log('onDragStartHandler', task);
         setDraggingTask(task);
     }
     const onDragEndHandler = () => {
-        console.log('onDragEndHandler');
+
         if (currentCellDate && draggingTask) {
             if (dragOverTask) {
                 const dragOverOrder = dragOverTask.order;
@@ -72,37 +78,7 @@ export default function Calendar() {
         console.log(task);
         setDragOverTask(null)
     }
-    // const onDropHandler = (task: Task) => {
-    //     if (currentCellDate && draggingTask) {
-    //         if (dragOverTask) {
-    //             console.log("dragOverTask", dragOverTask);
-    //             const dragOverOrder = dragOverTask.order;
-    //             const draggingTaskOrder = draggingTask.order;
-    //             dragOverTask.order = draggingTaskOrder;
-    //             draggingTask.order = dragOverOrder;
-    //             dispatch(updateTask({
-    //                 ...dragOverTask
-    //             }))
-    //             dispatch(updateTask({
-    //                 ...draggingTask
-    //             }))
-    //         } else {
-    //             dispatch(updateTask({
-    //                 id: draggingTask.id,
-    //                 date: currentCellDate
-    //             }))
-    //         }
-    //     }
-    // }
 
-    // const dragHandler = (id: Task["id"], event: React.DragEvent<HTMLDivElement>) => {
-    //     console.log(id, event);
-    //     setDraggingTaskId(id);
-    // }
-
-    // const onDropHandler = () => {
-
-    // }
 
     const onDragOverCalendarCell = (date: Task["date"]) => setCurrentCellDate(date)
     const onCellClickHandler = (date: Task["date"]) => {
@@ -118,27 +94,41 @@ export default function Calendar() {
             order
         }))
     }
-
+    console.log(calendarCells);
     return (
-        <CalendarBox>
-            {!!calendarCells?.length && calendarCells.map((item, i) => {
-                return (
-                    <CalendarCell
-                        key={i}
-                        date={item.date}
-                        taskList={item.taskList}
-                        // onDropHandler={onDropHandler}
-                        onDragOverHandler={onDragOverHandler}
-                        onDragStartHandler={onDragStartHandler}
-                        onDragLeaveHandler={onDragLeaveHandler}
-                        onDragEndHandler={onDragEndHandler}
-                        onDragOverCellHandler={onDragOverCalendarCell}
-                        onCellClickHandler={onCellClickHandler}
-                        isToday={moment().format('L') === moment(item.date).format('L')}
-                    />
-                );
-            })}
-        </CalendarBox>
+        <>
+            <CalendarHeader>
+                {buildWeekGrid("ddd").map((day, i) => {
+                    return (
+                        <div
+                            key={i}
+                        >
+                            {day}
+                        </div>)
+                })}
+            </CalendarHeader>
 
+
+            <CalendarBox>
+
+                {!!calendarCells?.length && calendarCells.map((item, i) => {
+                    return (
+                        <CalendarCell
+                            key={i}
+                            date={item.date}
+                            taskList={item.taskList}
+                            holydays={item.holydayList}
+                            onDragOverHandler={onDragOverHandler}
+                            onDragStartHandler={onDragStartHandler}
+                            onDragLeaveHandler={onDragLeaveHandler}
+                            onDragEndHandler={onDragEndHandler}
+                            onDragOverCellHandler={onDragOverCalendarCell}
+                            onCellClickHandler={onCellClickHandler}
+                            isToday={moment().format('L') === moment(item.date).format('L')}
+                        />
+                    );
+                })}
+            </CalendarBox>
+        </>
     );
 }

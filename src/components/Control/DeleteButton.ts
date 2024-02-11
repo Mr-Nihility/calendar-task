@@ -5,5 +5,5 @@ export const DeleteButtonElement = styled.div`
     position: absolute;
     top: 8px;
     right: 8px;
-    font-size: 10px;
+    font-size: 20px;
 `

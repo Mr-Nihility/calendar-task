@@ -1,10 +1,11 @@
-import styled from "@emotion/styled";
 import React, { MouseEventHandler, useRef, useState } from "react";
+import { GoTrash } from "react-icons/go";
 import { useDispatch } from "react-redux";
 import { deleteTask, updateTask } from "../../redux/task/task-slice";
 import { Task } from "../../redux/types/task.types";
 import { DeleteButtonElement } from "../Control/DeleteButton";
 import Label from "../Label/Label";
+import { LabelBox } from "./styled/LabelBox";
 import { TaskBox } from "./styled/TaskBox";
 
 type TaskItemProps = {
@@ -14,13 +15,6 @@ type TaskItemProps = {
     onDragOverHandler: (task: Task, event: React.DragEvent<HTMLDivElement>) => void,
     onDragLeaveHandler: (task: Task, event: React.DragEvent<HTMLDivElement>) => void,
 };
-
-const LabelBox = styled.ul`
-    display: flex;
-    flex-wrap: wrap;
-    flex-basis: 5px;
-    gap: 4px;
-`
 
 export function TaskItem({
     task,
@@ -41,6 +35,7 @@ export function TaskItem({
     }
 
     const onMouseMoveHandler: MouseEventHandler = () => {
+        setIsControl(true);
         if (typeof timeOutId === "number") {
             clearTimeout(timeOutId);
         }
@@ -78,20 +73,21 @@ export function TaskItem({
             {isControl && (
                 <DeleteButtonElement
                     onClick={() => onDeleteTask(task)}
-                >x</DeleteButtonElement>
+                >  <GoTrash /> </DeleteButtonElement>
             )}
             <LabelBox>
                 {task.labels.map(label => {
                     return (
-                        <Label color={label} />
+                        <Label
+                            key={label}
+                            color={label}
+                        />
                     )
                 })}
             </LabelBox>
             <div
                 contentEditable={true}
-                style={{
-                    outlineStyle: "none",
-                }}
+                style={{ outlineStyle: "none" }}
                 ref={taskNameRef}
                 onBlur={() => onBlur(task.id)}
             >

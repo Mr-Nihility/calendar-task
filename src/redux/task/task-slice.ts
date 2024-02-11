@@ -27,7 +27,8 @@ const initialState: TaskState = {
             order: 3
         }
     ],
-    currentDate: moment().format("DD-MM-YYYY")
+    currentDate: moment().format("DD-MM-YYYY"),
+    countryCode: "UA"
 }
 
 export const taskSlice = createSlice({
@@ -50,9 +51,12 @@ export const taskSlice = createSlice({
         },
         setDate: (state, action) => {
             state.currentDate = action.payload;
+        },
+        setCountryCode(state, action) {
+            state.countryCode = action.payload
         }
     },
 })
-export const { addTask, updateTask, deleteTask, setDate } = taskSlice.actions
+export const { addTask, updateTask, deleteTask, setDate, setCountryCode } = taskSlice.actions
 
 export default taskSlice.reducer

@@ -6,5 +6,6 @@ export const DayDiv = styled.div`
     left: 2px;
     top: 2px;
     display: flex;
+    align-items: end;
     gap: 5px;
 `
