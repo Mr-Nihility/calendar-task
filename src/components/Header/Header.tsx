@@ -1,14 +1,15 @@
 import moment from "moment";
-import { MouseEventHandler } from "react";
+import { MouseEventHandler, useRef } from "react";
 import { RiScreenshot2Line } from "react-icons/ri";
 import { SlArrowLeft, SlArrowRight } from "react-icons/sl";
 import { TfiExport, TfiImport } from "react-icons/tfi";
 import { useDispatch, useSelector } from "react-redux";
 import { useGetAllCountries } from "../../Api/Api-hook/useDateApi";
-import { getCalendarType, getCountryCode, getCurrentDate, getLabelList } from "../../redux/task/task-selectors";
-import { setCalendarType, setCountryCode, setDate } from "../../redux/task/task-slice";
+import { getAllTask, getCalendarType, getCountryCode, getCurrentDate, getLabelList } from "../../redux/task/task-selectors";
+import { addTask, setCalendarType, setCountryCode, setDate } from "../../redux/task/task-slice";
 import { Country, LabelTypes } from "../../redux/types/task.types";
 import { DEFAULT_DATE_FORMAT, nextDate, prevDate } from "../../tools/calendar-tool";
+import { downloadCalendarImage, exportCalendar, importCalendar } from "../../tools/file-reader";
 import { DropDown } from "../DropDown/DropDown";
 import { ControlsBox } from "./styled/ControlBox";
 import { HeaderBox } from "./styled/HeaderBox";
@@ -30,6 +31,8 @@ export default function Header({ onSearchInputChange, onSearchLabelChange, searc
     const calendarType = useSelector(getCalendarType);
     const { countryListData } = useGetAllCountries()
     const dispatch = useDispatch();
+    const allTasks = useSelector(getAllTask);
+    const importElement = useRef<HTMLInputElement | null>(null);
 
     const onPrevClickHandler: MouseEventHandler = () => {
         const prevMonthDate = prevDate(moment(date, DEFAULT_DATE_FORMAT), calendarType);
@@ -61,15 +64,24 @@ export default function Header({ onSearchInputChange, onSearchLabelChange, searc
                 <TfiExport
                     fill="#fff"
                     size={25}
+                    onClick={() => {
+                        exportCalendar(allTasks)
+                    }}
                 />
                 <TfiImport
                     size={25}
                     fill="#fff"
+                    onClick={() => {
+                        importElement.current?.click()
+                    }}
                 />
 
                 <RiScreenshot2Line
                     size={25}
                     fill="#fff"
+                    onClick={() => {
+                        downloadCalendarImage()
+                    }}
                 />
                 <SlArrowLeft
                     size={25}
@@ -135,6 +147,19 @@ export default function Header({ onSearchInputChange, onSearchLabelChange, searc
                     handler={onCountryChange}
                 />
             </div>
+            <input
+                type="file"
+                ref={importElement}
+                name="importCalendar"
+                onChange={async (e) => {
+                    const newCalendarData = await importCalendar(e)
+                    if (newCalendarData) {
+                        dispatch(addTask(newCalendarData))
+                    }
+                }}
+                style={{
+                    display: "none"
+                }} />
         </HeaderBox>
     );
 }

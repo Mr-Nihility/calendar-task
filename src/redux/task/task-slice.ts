@@ -1,26 +1,26 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit'
 import moment from 'moment'
+import { nanoid } from 'nanoid'
 import { Country, LabelTypes, Task, TaskPayload, TaskState } from '../types/task.types'
-
 
 const initialState: TaskState = {
     tasks: [
         {
-            id: "1",
+            id: nanoid(),
             name: "Learn JS",
             labels: [LabelTypes.Green],
             date: "09-02-2024",
             order: 1
         },
         {
-            id: "2",
+            id: nanoid(),
             name: "Learn React",
             labels: [LabelTypes.Blue],
             date: "09-02-2024",
             order: 2
         },
         {
-            id: "3",
+            id: nanoid(),
             name: "Learn Angular",
             labels: [LabelTypes.Red],
             date: "09-02-2024",
@@ -36,9 +36,15 @@ export const taskSlice = createSlice({
     name: 'tasks',
     initialState,
     reducers: {
-        addTask: (state, action: PayloadAction<Task>): void => {
-            state.tasks = [...state.tasks, action.payload]
+        addTask: (state, action: PayloadAction<Task | Task[]>): void => {
+            if (Array.isArray(action.payload)) {
+                state.tasks = [...state.tasks, ...action.payload]
+            } else {
+                state.tasks = [...state.tasks, action.payload]
+            }
+
         },
+
         updateTask: (state, action: PayloadAction<TaskPayload>) => {
             state.tasks = state.tasks.map(task => {
                 if (task.id === action.payload.id) {

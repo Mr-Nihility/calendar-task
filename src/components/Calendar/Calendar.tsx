@@ -1,4 +1,5 @@
 import moment from "moment";
+import { nanoid } from "nanoid";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { addTask, updateTask } from "../../redux/task/task-slice.ts";
@@ -80,7 +81,7 @@ export default function Calendar({ calendarCells, taskList, holydays }: Calendar
             order = 1;
         }
 
-        const id = moment.now() + "";
+        const id = nanoid();
         dispatch(addTask({
             id,
             name: "",
