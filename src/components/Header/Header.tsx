@@ -6,7 +6,7 @@ import { TfiExport, TfiImport } from "react-icons/tfi";
 import { useDispatch, useSelector } from "react-redux";
 import { useGetAllCountries } from "../../Api/Api-hook/useDateApi";
 import { getAllTask, getCalendarType, getCountryCode, getCurrentDate, getLabelList } from "../../redux/task/task-selectors";
-import { addTask, setCalendarType, setCountryCode, setDate } from "../../redux/task/task-slice";
+import { mergeFromFile, setCalendarType, setCountryCode, setDate } from "../../redux/task/task-slice";
 import { Country, LabelTypes } from "../../redux/types/task.types";
 import { DEFAULT_DATE_FORMAT, nextDate, prevDate } from "../../tools/calendar-tool";
 import { downloadCalendarImage, exportCalendar, importCalendar } from "../../tools/file-reader";
@@ -154,7 +154,7 @@ export default function Header({ onSearchInputChange, onSearchLabelChange, searc
                 onChange={async (e) => {
                     const newCalendarData = await importCalendar(e)
                     if (newCalendarData) {
-                        dispatch(addTask(newCalendarData))
+                        dispatch(mergeFromFile(newCalendarData))
                     }
                 }}
                 style={{

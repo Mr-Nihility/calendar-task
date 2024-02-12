@@ -5,14 +5,19 @@ export const importCalendar = async (event: React.ChangeEvent<HTMLInputElement>)
         const file = event.target.files?.[0];
         const reader = new FileReader();
 
-        let calendarData: Task[] | null = null
         reader.onload = (event) => {
             const content = event.target?.result;
             if (typeof content === "string") {
-                const importedData = JSON.parse(content);
-
-                calendarData = importedData
-                resolve(calendarData)
+                try {
+                    const importedData = JSON.parse(content);
+                    if (isTaskArray(importedData)) {
+                        resolve(importedData)
+                    } else {
+                        resolve(null)
+                    }
+                } catch (error) {
+                    resolve(null)
+                }
             }
         };
         if (file) reader.readAsText(file);
@@ -31,11 +36,11 @@ export function isTaskArray(tasks: unknown): tasks is Task[] {
                 && "date" in task
                 && "order" in task
             ) {
-                return true;
+                return false;
             }
         }
     })) {
-        return false;
+        return true;
     }
     return true;
 }

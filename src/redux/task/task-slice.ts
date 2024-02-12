@@ -36,15 +36,14 @@ export const taskSlice = createSlice({
     name: 'tasks',
     initialState,
     reducers: {
-        addTask: (state, action: PayloadAction<Task | Task[]>): void => {
-            if (Array.isArray(action.payload)) {
-                state.tasks = [...state.tasks, ...action.payload]
-            } else {
-                state.tasks = [...state.tasks, action.payload]
-            }
-
+        addTask: (state, action: PayloadAction<Task>): void => {
+            state.tasks = [...state.tasks, action.payload]
         },
-
+        mergeTasksFromFile: (state, action: PayloadAction<Task[]>): void => {
+            const uniqTasks = action.payload.filter(tsk => state.tasks.every(stateTask => stateTask.id !== tsk.id));
+            console.log("🚀 >>> uniqTasks:", uniqTasks, action.payload)
+            state.tasks = [...state.tasks, ...uniqTasks]
+        },
         updateTask: (state, action: PayloadAction<TaskPayload>) => {
             state.tasks = state.tasks.map(task => {
                 if (task.id === action.payload.id) {
@@ -68,6 +67,6 @@ export const taskSlice = createSlice({
         }
     },
 })
-export const { addTask, updateTask, deleteTask, setDate, setCountryCode, setCalendarType } = taskSlice.actions
+export const { addTask, updateTask, deleteTask, setDate, setCountryCode, setCalendarType, mergeTasksFromFile: mergeFromFile } = taskSlice.actions
 
 export default taskSlice.reducer
