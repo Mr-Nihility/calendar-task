@@ -1,7 +1,10 @@
 import moment from "moment";
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
+import { IoAddOutline } from "react-icons/io5";
 import { Holyday, Task } from "../../redux/types/task.types";
+import HolydayCard from "../HolydayCard/HolydayCard";
 import { TaskItem } from "../TaskItem/TaskItem";
+import { AddButton } from "./styled/AddButton";
 import { CalendarCellStyled } from "./styled/CalendarCellItem";
 import { DayDiv } from "./styled/DayLabel";
 import { TaskListBox } from "./styled/TaskListBox";
@@ -17,7 +20,8 @@ type CalendarCellProps = {
     onDragOverHandler: (task: Task, event: React.DragEvent<HTMLDivElement>) => void,
     onDragLeaveHandler: (task: Task, event: React.DragEvent<HTMLDivElement>) => void,
     onDragOverCellHandler: (date: string) => void,
-    onCellClickHandler: (date: string) => void
+    onCellClickHandler: (date: string) => void,
+    onEditLabelClickHandler: (task: Task, element: HTMLDivElement | null) => void
 }
 
 export default function CalendarCell(
@@ -30,19 +34,37 @@ export default function CalendarCell(
         onDragOverHandler,
         onDragStartHandler,
         onDragLeaveHandler,
-        onDragEndHandler
+        onDragEndHandler,
+        onEditLabelClickHandler
     }: CalendarCellProps
 ) {
+
+    const [isActive, setIsActive] = useState(false);
+
     const tableCellElement = useRef(null);
-    const onCellClick: React.MouseEventHandler<HTMLDivElement> = (event) => {
-        if (event.target !== tableCellElement.current) return;
+
+    const onAddButtonClick: React.MouseEventHandler<HTMLOrSVGElement> = () => {
         onCellClickHandler(date);
     }
 
+    const onMouseOverHandler = () => {
+        setIsActive(true)
+    }
+    const onMouseLeaveHandler = () => {
+        setIsActive(false)
+    }
+
+
+
     return (
         <CalendarCellStyled
-            onDragEnter={() => onDragOverCellHandler(date)}
-            onClick={onCellClick}
+            onDragEnter={() => {
+                onDragOverCellHandler(date)
+                onMouseLeaveHandler()
+            }}
+            onMouseOver={onMouseOverHandler}
+            isActive={isActive}
+            onMouseLeave={onMouseLeaveHandler}
             ref={tableCellElement}
         >
             <DayDiv>
@@ -50,23 +72,29 @@ export default function CalendarCell(
                 <div style={{
                     fontSize: "16px",
                     color: "grey"
-                }}>{!!taskList.length && `${taskList.length} card`}</div>
+                }}>{!!taskList.length && `${taskList.length} card`}  {!!holydays.length && `${holydays.length} holiday`}</div>
             </DayDiv>
-            {
-                !!holydays.length && holydays.map((holydays, i) => {
-                    return (
-                        <div
-                            key={i}
-                            style={{
-                                backgroundColor: "green",
-                                color: "white"
-                            }}
-                        >
-                            {holydays.name}
-                        </div>
-                    )
-                })
-            }
+
+            {isActive && (
+                <AddButton
+                    onClick={onAddButtonClick}
+                >
+                    <IoAddOutline />
+                </AddButton>
+            )}
+
+
+
+            {!!holydays.length && holydays.map((holyday, i) => {
+                return (
+                    <HolydayCard
+                        key={i}
+                        name={holyday.name}
+                    >
+                    </HolydayCard>
+                )
+            })}
+
             {!!taskList.length && (
                 <TaskListBox>
                     {[...taskList].sort((a, b) => a.order - b.order).map((task: Task) => {
@@ -78,6 +106,7 @@ export default function CalendarCell(
                                 onDragStartHandler={onDragStartHandler}
                                 onDragLeaveHandler={onDragLeaveHandler}
                                 onDragEndHandler={onDragEndHandler}
+                                onEditLabelClickHandler={onEditLabelClickHandler}
                             />
                         );
                     })}

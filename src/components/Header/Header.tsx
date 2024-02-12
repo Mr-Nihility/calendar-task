@@ -1,18 +1,20 @@
 import moment from "moment";
 import { MouseEventHandler } from "react";
 import { RiScreenshot2Line } from "react-icons/ri";
-import { SlArrowLeft, SlArrowRight, SlPencil } from "react-icons/sl";
+import { SlArrowLeft, SlArrowRight } from "react-icons/sl";
 import { TfiExport, TfiImport } from "react-icons/tfi";
 import { useDispatch, useSelector } from "react-redux";
 import { useGetAllCountries } from "../../Api/Api-hook/useDateApi";
-import { getCountryCode, getCurrentDate, getLabelList } from "../../redux/task/task-selectors";
-import { setCountryCode, setDate } from "../../redux/task/task-slice";
+import { getCalendarType, getCountryCode, getCurrentDate, getLabelList } from "../../redux/task/task-selectors";
+import { setCalendarType, setCountryCode, setDate } from "../../redux/task/task-slice";
 import { Country, LabelTypes } from "../../redux/types/task.types";
-import { DEFAULT_DATE_FORMAT, nextMonth, prevMonth } from "../../tools/calendar-tool";
-import { HeaderButton } from "../Button/HeaderButton";
+import { DEFAULT_DATE_FORMAT, nextDate, prevDate } from "../../tools/calendar-tool";
 import { DropDown } from "../DropDown/DropDown";
 import { ControlsBox } from "./styled/ControlBox";
 import { HeaderBox } from "./styled/HeaderBox";
+import { HeaderButton } from "./styled/HeaderButton";
+import { InputStyled } from "./styled/InputStyled";
+import { SearchInputsBox } from "./styled/SearchInputsBox";
 
 type HeaderProps = {
     onSearchInputChange: (value: string) => void,
@@ -25,23 +27,31 @@ export default function Header({ onSearchInputChange, onSearchLabelChange, searc
     const labelList = useSelector(getLabelList);
     const date = useSelector(getCurrentDate);
     const countryCode = useSelector(getCountryCode);
+    const calendarType = useSelector(getCalendarType);
     const { countryListData } = useGetAllCountries()
     const dispatch = useDispatch();
 
     const onPrevClickHandler: MouseEventHandler = () => {
-        const prevMonthDate = prevMonth(moment(date, DEFAULT_DATE_FORMAT));
+        const prevMonthDate = prevDate(moment(date, DEFAULT_DATE_FORMAT), calendarType);
         dispatch(setDate(prevMonthDate));
     };
 
     const onNextClickHandler: MouseEventHandler = () => {
-        const nextMonthDate = nextMonth(moment(date, DEFAULT_DATE_FORMAT));
+        const nextMonthDate = nextDate(moment(date, DEFAULT_DATE_FORMAT), calendarType);
         dispatch(setDate(nextMonthDate));
     };
 
     const onCountryChange = (name: Country["name"]) => {
-        const country = countryListData.find(item => item.name === name)
+        const country = countryListData.find(item => item.name === name);
+        if (!country) return;
+        dispatch(setCountryCode(country.countryCode))
+    }
 
-        dispatch(setCountryCode(country?.countryCode))
+    const onMonthClickHandler: MouseEventHandler = () => {
+        dispatch(setCalendarType("month"))
+    }
+    const onWeekClickHandler: MouseEventHandler = () => {
+        dispatch(setCalendarType("week"))
     }
 
     return (
@@ -50,27 +60,24 @@ export default function Header({ onSearchInputChange, onSearchLabelChange, searc
             <ControlsBox>
                 <TfiExport
                     fill="#fff"
-                    size={30}
+                    size={25}
                 />
                 <TfiImport
-                    size={30}
+                    size={25}
                     fill="#fff"
                 />
-                <SlPencil
-                    size={30}
-                    fill="#fff"
-                />
+
                 <RiScreenshot2Line
-                    size={30}
+                    size={25}
                     fill="#fff"
                 />
                 <SlArrowLeft
-                    size={30}
+                    size={25}
                     fill="#fff"
                     onClick={onPrevClickHandler}
                 />
                 <SlArrowRight
-                    size={30}
+                    size={25}
                     fill="#fff"
                     onClick={onNextClickHandler}
                 />
@@ -87,28 +94,42 @@ export default function Header({ onSearchInputChange, onSearchLabelChange, searc
                     display: "flex",
                     gap: "10px"
                 }}>
-                    <HeaderButton>Week</HeaderButton>
-                    <HeaderButton>Month</HeaderButton>
+                    <HeaderButton
+                        isActive={calendarType === "week"}
+                        onClick={onWeekClickHandler}
+                    >
+                        Week
+                    </HeaderButton>
+                    <HeaderButton
+                        isActive={calendarType === "month"}
+                        onClick={onMonthClickHandler}
+                    >
+                        Month
+                    </HeaderButton>
                 </div>
             </div>
-            <div>
-                <label>
-                    <input
-                        type="text"
-                        name="searchInput"
-                        value={searchInput}
-                        onChange={(e) => onSearchInputChange(e.target.value)}
-                    ></input>
-                </label>
+            <SearchInputsBox>
+                <div>
+                    Filter
+                </div>
+                <InputStyled
+                    type="text"
+                    name="searchInput"
+                    value={searchInput}
+                    onChange={(e) => onSearchInputChange(e.target.value)}
+                ></InputStyled>
+
                 <DropDown
+                    type="label"
                     items={labelList}
                     value={searchLabel}
                     handler={onSearchLabelChange}
                 />
-            </div>
+            </SearchInputsBox>
 
             <div>
                 <DropDown
+                    type="text"
                     items={countryListData.map(item => item.name)}
                     value={countryListData.find(item => item.countryCode === countryCode)?.name || ""}
                     handler={onCountryChange}

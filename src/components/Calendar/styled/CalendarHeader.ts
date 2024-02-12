@@ -7,6 +7,7 @@ export const CalendarHeader = styled.ul`
     grid-template-rows: auto;
     color: grey;
     position: relative;
+    font-size: 21px;
     &>div{
         padding: 5px;
         display: flex;

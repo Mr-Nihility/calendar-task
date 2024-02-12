@@ -5,21 +5,29 @@ import { usePublicHolidays } from './Api/Api-hook/useDateApi';
 import './App.css';
 import Calendar from './components/Calendar/Calendar';
 import Header from "./components/Header/Header";
-import { getAllTask, getCountryCode, getCurrentDate } from './redux/task/task-selectors';
-import { LabelTypes } from './redux/types/task.types';
-import { performHolidays } from './tools/calendar-tool';
+import { getAllTask, getCalendarType, getCountryCode, getCurrentDate } from './redux/task/task-selectors';
+import { CalendarCellData, LabelTypes } from './redux/types/task.types';
+import { DEFAULT_DATE_FORMAT, buildGrid } from './tools/calendar-tool';
 
 function App() {
+    const [calendarCells, setCalendarCells] = useState<CalendarCellData[]>([])
     const [searchInput, setSearchInput] = useState("")
     const [searchLabel, setSearchLabel] = useState<LabelTypes | string | null>(null)
     const tasklist = useSelector(getAllTask);
     const currentDate = useSelector(getCurrentDate);
+    const currentType = useSelector(getCalendarType)
     const currentCountryCode = useSelector(getCountryCode);
     const publicHolidaysQuery = usePublicHolidays(moment(currentDate).format("YYYY"), currentCountryCode);
 
     useEffect(() => {
         publicHolidaysQuery.refetchPublicHolydays()
-    }, [currentDate, currentCountryCode])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    useEffect(() => {
+        const grid = buildGrid(moment(currentDate, DEFAULT_DATE_FORMAT), currentType)
+        setCalendarCells(grid)
+    }, [currentDate, currentType])
 
     const filteredTasklist = useCallback((filterString: string, filterLabel: LabelTypes | string | null) => {
         return tasklist.filter(task => {
@@ -37,10 +45,10 @@ function App() {
     const onSearchLabelChange = (label: LabelTypes | string) => {
         setSearchLabel(label)
     }
+
     return (
         <>
             <div style={{
-                backgroundColor: "EEEFF1",
                 width: "100%",
                 height: "100%"
             }}>
@@ -49,13 +57,12 @@ function App() {
                     onSearchLabelChange={onSearchLabelChange}
                     searchInput={searchInput}
                     searchLabel={searchLabel}
-                >
-
-                </Header>
+                />
                 <Calendar
-                    holydays={performHolidays(publicHolidaysQuery.holydaysList)}
-                    tasks={filteredTasklist(searchInput, searchLabel)}
-                ></Calendar>
+                    holydays={publicHolidaysQuery.holydaysList}
+                    taskList={filteredTasklist(searchInput, searchLabel)}
+                    calendarCells={calendarCells}
+                />
             </div>
         </>
 

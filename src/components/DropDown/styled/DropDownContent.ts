@@ -7,4 +7,5 @@ export const DropDownContent = styled.div`
   width: 100%;
   box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.07);
   overflow-y:auto ;
+  border-radius: 4px;
 `

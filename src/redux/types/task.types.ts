@@ -3,13 +3,16 @@
 export interface TaskState {
     tasks: Task[],
     currentDate: string,
-    countryCode: Country["countryCode"]
+    countryCode: Country["countryCode"],
+    calendarType: "week" | "month"
 }
 
 export enum LabelTypes {
     Green = "green",
     Blue = "blue",
-    Red = "red"
+    Red = "red",
+    Yellow = "yellow",
+    Aqua = "aqua"
 }
 
 export type Task = {
@@ -23,7 +26,7 @@ export type Task = {
 
 export type TaskPayload = {
     id: string,
-    date: string,
+    date?: string,
     labels?: LabelTypes[],
     name?: string,
     order?: number
@@ -42,8 +45,6 @@ export type Holyday = {
 
 export type CalendarCellData = {
     date: string,
-    taskList: Task[],
-    holydayList: Holyday[]
 }
 
 export type Country = {

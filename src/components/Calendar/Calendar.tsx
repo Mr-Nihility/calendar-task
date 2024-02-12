@@ -1,51 +1,41 @@
-// import React, { useCallback, useState } from 'react';
-// import { useDispatch, useSelector } from 'react-redux';
-// import { getAllTask, getCurrentDate } from '../../redux/task/task-selectors';
-// import { addTask } from '../../redux/task/task-slice';
-// import { CalendarCellData, Task } from '../../redux/types/task.types';
-// import { getCalendarCellsByDate } from '../../tools/calendar-tool';
-// import CalendarCell from '../CalendarCell/CalendarCell';
-// import { CalendarBox } from './styled/CalendarBox';
-
 import moment from "moment";
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { getCurrentDate } from "../../redux/task/task-selectors.ts";
+import { useState } from "react";
+import { useDispatch } from "react-redux";
 import { addTask, updateTask } from "../../redux/task/task-slice.ts";
-import { CalendarCellData, Holyday, Task } from "../../redux/types/task.types.ts";
-import { buildWeekGrid, getCalendarCellsByDate } from "../../tools/calendar-tool.ts";
+import { CalendarCellData, Holyday, LabelTypes, Task } from "../../redux/types/task.types.ts";
+import { buildWeekGridHeader } from "../../tools/calendar-tool.ts";
 import CalendarCell from "../CalendarCell/CalendarCell.tsx";
+import LabelSelector from "../Control/LabelSelector/LabelSelector.tsx";
 import { CalendarBox } from "./styled/CalendarBox";
 import { CalendarHeader } from "./styled/CalendarHeader.ts";
 
 type CalendarProps = {
-    tasks: Task[],
+    calendarCells: CalendarCellData[],
+    taskList: Task[],
     holydays: Holyday[]
 }
-export default function Calendar({ tasks, holydays }: CalendarProps) {
-
+export default function Calendar({ calendarCells, taskList, holydays }: CalendarProps) {
     const dispatch = useDispatch();
-    const selectedDate = useSelector(getCurrentDate);
     const [currentCellDate, setCurrentCellDate] = useState<null | Task["date"]>(null);
     const [draggingTask, setDraggingTask] = useState<null | Task>(null);
     const [dragOverTask, setDragOverTask] = useState<null | Task>(null)
-    const [calendarCells, setCalendarCells] = useState<CalendarCellData[]>([])
-
-
-    useEffect(() => {
-        const grid: CalendarCellData[] = getCalendarCellsByDate(moment(selectedDate, "DD-MM-YYYY")).map(cell => {
-            cell.taskList = tasks.filter(task => task.date === cell.date);
-            cell.holydayList = holydays.filter(holyday => holyday.date === cell.date);
-            console.log(holydays);
-            return cell;
-        })
-
-        setCalendarCells(grid)
-    }, [tasks, selectedDate, holydays])
-
+    const [activeTaskEditing, setActiveTaskEditing] = useState<{ task: Task, rect: DOMRect } | null>(null)
+    const allLabelList = Object.values(LabelTypes);
     const onDragStartHandler = (task: Task) => {
         setDraggingTask(task);
     }
+    const onEditLabelClickHandler = (task: Task, element: HTMLDivElement | null) => {
+        console.dir(element);
+        if (!element) return;
+        setActiveTaskEditing(
+            {
+                task: task,
+                rect: element.getBoundingClientRect()
+            }
+        )
+    }
+
+
     const onDragEndHandler = () => {
 
         if (currentCellDate && draggingTask) {
@@ -83,7 +73,12 @@ export default function Calendar({ tasks, holydays }: CalendarProps) {
     const onDragOverCalendarCell = (date: Task["date"]) => setCurrentCellDate(date)
     const onCellClickHandler = (date: Task["date"]) => {
         const cell = calendarCells.find(cell => cell.date === date);
-        const order = cell ? Math.max(...cell.taskList.map(task => task.order)) + 1 : 1;
+        let order
+        if (cell && taskList.length) {
+            order = Math.max(...taskList.filter(task => task.date === date).map(task => task.order)) + 1
+        } else {
+            order = 1;
+        }
 
         const id = moment.now() + "";
         dispatch(addTask({
@@ -94,11 +89,33 @@ export default function Calendar({ tasks, holydays }: CalendarProps) {
             order
         }))
     }
-    console.log(calendarCells);
+    const onLabelChange = (label: LabelTypes) => {
+        if (activeTaskEditing?.task) {
+            const index = activeTaskEditing.task.labels.indexOf(label);
+            let newLabels = []
+            if (index === -1) {
+                newLabels = [...activeTaskEditing.task.labels, label];
+            } else {
+                newLabels = [...activeTaskEditing.task.labels.filter((_, i) => i !== index)]
+            }
+            dispatch(updateTask({
+                id: activeTaskEditing.task.id,
+                labels: newLabels
+            }))
+            setActiveTaskEditing({
+                task: { ...activeTaskEditing.task, labels: newLabels },
+                rect: activeTaskEditing.rect
+            })
+        }
+    }
+    const onLabelSelectorClose = () => {
+        setActiveTaskEditing(null)
+    }
+
     return (
         <>
             <CalendarHeader>
-                {buildWeekGrid("ddd").map((day, i) => {
+                {buildWeekGridHeader("ddd").map((day, i) => {
                     return (
                         <div
                             key={i}
@@ -110,14 +127,15 @@ export default function Calendar({ tasks, holydays }: CalendarProps) {
 
 
             <CalendarBox>
-
+                {activeTaskEditing && <LabelSelector allLabels={allLabelList} currentItemLabel={activeTaskEditing.task.labels} rect={activeTaskEditing.rect} onClickHandler={onLabelChange} onClose={onLabelSelectorClose} />}
                 {!!calendarCells?.length && calendarCells.map((item, i) => {
                     return (
                         <CalendarCell
+                            onEditLabelClickHandler={onEditLabelClickHandler}
                             key={i}
                             date={item.date}
-                            taskList={item.taskList}
-                            holydays={item.holydayList}
+                            taskList={taskList.filter(task => task.date === item.date)}
+                            holydays={holydays.filter(holyday => holyday.date === item.date)}
                             onDragOverHandler={onDragOverHandler}
                             onDragStartHandler={onDragStartHandler}
                             onDragLeaveHandler={onDragLeaveHandler}

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "react-query";
 import { Country, Holyday } from "../../redux/types/task.types";
+import { performHolidays } from "../../tools/calendar-tool";
 import { getAllCountries, getPublicHolidays } from "../api-service";
 
 export const useGetAllCountries = () => {
@@ -32,7 +33,7 @@ export const usePublicHolidays = (year: string, code: string) => {
         {
             onSuccess: (holidays: Holyday[]) => {
                 console.log("get public Holidays", holidays);
-                setHolydaysList(holidays)
+                setHolydaysList(performHolidays(holidays))
             },
             onError: (error) => {
                 console.log('error', error);

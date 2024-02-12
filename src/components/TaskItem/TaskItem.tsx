@@ -1,9 +1,12 @@
 import React, { MouseEventHandler, useRef, useState } from "react";
 import { GoTrash } from "react-icons/go";
+import { SlPencil } from "react-icons/sl";
 import { useDispatch } from "react-redux";
 import { deleteTask, updateTask } from "../../redux/task/task-slice";
 import { Task } from "../../redux/types/task.types";
+import { ActionContainer } from "../Control/ActionContainer";
 import { DeleteButtonElement } from "../Control/DeleteButton";
+import { EditButtonElement } from "../Control/EditButton";
 import Label from "../Label/Label";
 import { LabelBox } from "./styled/LabelBox";
 import { TaskBox } from "./styled/TaskBox";
@@ -14,6 +17,7 @@ type TaskItemProps = {
     onDragEndHandler: (event: React.DragEvent<HTMLDivElement>) => void,
     onDragOverHandler: (task: Task, event: React.DragEvent<HTMLDivElement>) => void,
     onDragLeaveHandler: (task: Task, event: React.DragEvent<HTMLDivElement>) => void,
+    onEditLabelClickHandler: (task: Task, element: HTMLDivElement | null) => void
 };
 
 export function TaskItem({
@@ -21,7 +25,8 @@ export function TaskItem({
     onDragStartHandler,
     onDragEndHandler,
     onDragOverHandler,
-    onDragLeaveHandler
+    onDragLeaveHandler,
+    onEditLabelClickHandler
 }: TaskItemProps) {
     const taskNameRef = useRef<HTMLDivElement | null>(null);
     const taskElement = useRef<HTMLDivElement | null>(null);
@@ -71,9 +76,20 @@ export function TaskItem({
             ref={taskElement}
         >
             {isControl && (
-                <DeleteButtonElement
-                    onClick={() => onDeleteTask(task)}
-                >  <GoTrash /> </DeleteButtonElement>
+                <ActionContainer>
+                    <DeleteButtonElement
+                        onClick={() => onDeleteTask(task)}
+                    >
+                        <GoTrash />
+                    </DeleteButtonElement>
+                    <EditButtonElement
+                        onClick={() => onEditLabelClickHandler(task, taskElement.current)}
+                    >
+                        <SlPencil
+                        />
+                    </EditButtonElement>
+
+                </ActionContainer>
             )}
             <LabelBox>
                 {task.labels.map(label => {
@@ -90,6 +106,7 @@ export function TaskItem({
                 style={{ outlineStyle: "none" }}
                 ref={taskNameRef}
                 onBlur={() => onBlur(task.id)}
+                suppressContentEditableWarning={true}
             >
                 {task.name}
             </div>

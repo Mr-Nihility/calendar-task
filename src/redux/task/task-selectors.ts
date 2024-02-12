@@ -6,6 +6,8 @@ const selectDate = (state: TaskState) => state.currentDate;
 
 const selectCountryCode = (state: TaskState) => state.countryCode;
 
+const selectCalendarType = (state: TaskState) => state.calendarType;
+
 export const getAllTask = createSelector(
     selectTasks,
     (tasks: Task[]) => tasks
@@ -24,4 +26,9 @@ export const getLabelList = createSelector(
 export const getCountryCode = createSelector(
     selectCountryCode,
     (code) => code
+)
+
+export const getCalendarType = createSelector(
+    selectCalendarType,
+    (type) => type
 )

@@ -3,8 +3,8 @@ import styled from "@emotion/styled";
 
 
 export const DropDownItem = styled.div`
-  padding: 10px;
+  padding: 6px;
   cursor: pointer;
- background: #fcfcfc;
+ background: #ebebeb;
 
 `

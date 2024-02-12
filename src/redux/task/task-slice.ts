@@ -1,6 +1,6 @@
 import { PayloadAction, createSlice } from '@reduxjs/toolkit'
 import moment from 'moment'
-import { LabelTypes, Task, TaskPayload, TaskState } from '../types/task.types'
+import { Country, LabelTypes, Task, TaskPayload, TaskState } from '../types/task.types'
 
 
 const initialState: TaskState = {
@@ -28,7 +28,8 @@ const initialState: TaskState = {
         }
     ],
     currentDate: moment().format("DD-MM-YYYY"),
-    countryCode: "UA"
+    countryCode: "UA",
+    calendarType: "month"
 }
 
 export const taskSlice = createSlice({
@@ -47,16 +48,20 @@ export const taskSlice = createSlice({
             });
         },
         deleteTask: (state, action: PayloadAction<Task>) => {
-            state.tasks = state.tasks.filter(task => task.id !== action.payload.id);
+            state.tasks = state.tasks
+                .filter(task => task.id !== action.payload.id);
         },
         setDate: (state, action) => {
             state.currentDate = action.payload;
         },
-        setCountryCode(state, action) {
-            state.countryCode = action.payload
+        setCountryCode: (state, action: PayloadAction<Country["countryCode"]>) => {
+            state.countryCode = action.payload;
+        },
+        setCalendarType: (state, action: PayloadAction<TaskState['calendarType']>) => {
+            state.calendarType = action.payload;
         }
     },
 })
-export const { addTask, updateTask, deleteTask, setDate, setCountryCode } = taskSlice.actions
+export const { addTask, updateTask, deleteTask, setDate, setCountryCode, setCalendarType } = taskSlice.actions
 
 export default taskSlice.reducer

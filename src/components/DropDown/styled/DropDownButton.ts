@@ -5,7 +5,7 @@ export const DropDownButton = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px;
+  padding: 6px;
   border: 1px solid #ddd;
   border-radius: 5px;
   color: #fff;

@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 
 
-export const DeleteButtonElement = styled.div`
+export const EditButtonElement = styled.div`
     font-size: 15px;
 `
